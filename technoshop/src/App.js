@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import axios from 'axios';
 
-
-
-
-function ProductForm({ addForm, editIndex, formDataList, setEditIndex, setFormDataList }) {
+function ProductForm({ handleAddProduct }) {
   const [productName, setProductName] = useState('');
   const [productPrice, setProductPrice] = useState('');
   const [category, setCategory] = useState('');
@@ -16,14 +13,15 @@ function ProductForm({ addForm, editIndex, formDataList, setEditIndex, setFormDa
     e.preventDefault();
     if (!productName || !productPrice || !category || !quantity || !isActive) return;
 
-    if (editIndex !== null) {
-      const updatedList = [...formDataList];
-      updatedList[editIndex] = { productName, productPrice, category, quantity, isActive };
-      addForm(updatedList);
-      setEditIndex(null);
-    } else {
-      addForm([...formDataList, { productName, productPrice, category, quantity, isActive }]);
-    }
+    const formData = {
+      productName,
+      productPrice,
+      category,
+      quantity,
+      isActive
+    };
+
+    handleAddProduct(formData);
 
     setProductName('');
     setProductPrice('');
@@ -31,30 +29,6 @@ function ProductForm({ addForm, editIndex, formDataList, setEditIndex, setFormDa
     setQuantity('');
     setIsActive('');
   };
-
-  const handleGetProducts = () => {
-
-    axios.get("https://localhost:44378/api/products").then((res) =>{
-    const data = res.data;
-    setFormDataList(data);
-   })
-   .catch((error) =>{
-    console.log(error);
-   });
-  
-    }
-
- 
-  useEffect(() => {
-    if (editIndex !== null) {
-      const { productName, productPrice, category, quantity, isActive } = formDataList[editIndex];
-      setProductName(productName);
-      setProductPrice(productPrice);
-      setCategory(category);
-      setQuantity(quantity);
-      setIsActive(isActive);
-    }
-  }, [editIndex, formDataList]);
 
   return (
     <form onSubmit={handleSubmit} className="form-container">
@@ -99,8 +73,6 @@ function ProductForm({ addForm, editIndex, formDataList, setEditIndex, setFormDa
       />
 
       <button type="submit">Submit</button>
-      <button type="get-products" onClick={handleGetProducts}>Get Products</button>
-
     </form>
   );
 }
@@ -122,7 +94,7 @@ function ProductList({ formDataList, deleteForm, editForm }) {
         </thead>
         <tbody>
           {formDataList.map((formData, index) => (
-            <tr key={index}>
+            <tr key={formData.Id}>
               <td>{index + 1}</td>
               <td>{formData.productName}</td>
               <td>{formData.productPrice}</td>
@@ -130,10 +102,10 @@ function ProductList({ formDataList, deleteForm, editForm }) {
               <td>{formData.quantity}</td>
               <td>{formData.isActive}</td>
               <td>
-                <button className="btn-action" onClick={() => deleteForm(index)}>
+                <button className="btn-action" onClick={() => deleteForm(formData.Id)}>
                   Delete
                 </button>
-                <button className="btn-action" onClick={() => editForm(index)}>
+                <button className="btn-action" onClick={() => editForm(formData.Id)}>
                   Edit
                 </button>
               </td>
@@ -146,30 +118,55 @@ function ProductList({ formDataList, deleteForm, editForm }) {
 }
 
 function App() {
+  const [formDataList, setFormDataList] = useState([]);
+  const [editFormData, setEditFormData] = useState(null);
 
-  const [formDataList, setFormDataList] = useState([] );
+  useEffect(() => {
+    fetchProductData();
+  }, []);
 
-  const [editIndex, setEditIndex] = useState(null);
-
-
-  const addForm = (formData) => {
-    setFormDataList(formData);
+  const fetchProductData = async () => {
+    try {
+      const response = await axios.get('https://localhost:44378/api/products');
+      setFormDataList(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const deleteForm = (index) => {
-    const updatedList = [...formDataList];
-    updatedList.splice(index, 1);
-    setFormDataList(updatedList);
+  const addForm = async (formData) => {
+    try {
+      const response = await axios.post('https://localhost:44378/api/products', formData);
+      setFormDataList([...formDataList, response.data]);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const editForm = (index) => {
-    setEditIndex(index);
+  const deleteForm = async (Id) => {
+    try {
+      await axios.delete(`https://localhost:44378/api/products/${Id}`);
+      const updatedList = formDataList.filter((formData) => formData.Id !== Id);
+      setFormDataList(updatedList);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const editForm = async (Id) => {
+    try {
+      const response = await axios.get(`https://localhost:44378/api/products/${Id}`);
+      const formDataToEdit = response.data;
+      setEditFormData(formDataToEdit);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <div className="main">
       <h2>Enter Product Details</h2>
-      <ProductForm addForm={addForm} editIndex={editIndex} formDataList={formDataList} setEditIndex={setEditIndex}  setFormDataList={setFormDataList} />
+      <ProductForm handleAddProduct={addForm} />
       <h3>Product List</h3>
       <ProductList formDataList={formDataList} deleteForm={deleteForm} editForm={editForm} />
     </div>
