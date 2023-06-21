@@ -2,21 +2,21 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import axios from 'axios';
 
-function ProductForm({ handleAddProduct }) {
-  const [productName, setProductName] = useState('');
-  const [productPrice, setProductPrice] = useState('');
-  const [category, setCategory] = useState('');
+function ProductForm({ handleAddProduct, categoriesList }) {
+  const [name, setProductName] = useState('');
+  const [price, setProductPrice] = useState('');
+  const [categoryTitle, setCategory] = useState('');
   const [quantity, setQuantity] = useState('');
   const [isActive, setIsActive] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!productName || !productPrice || !category || !quantity || !isActive) return;
+    if (!name || !price || !categoryTitle || !quantity || !isActive) return;
 
     const formData = {
-      productName,
-      productPrice,
-      category,
+      name,
+      price,
+      categoryTitle,
       quantity,
       isActive
     };
@@ -36,7 +36,7 @@ function ProductForm({ handleAddProduct }) {
       <input
         type="text"
         className="input"
-        value={productName}
+        value={name}
         onChange={(e) => setProductName(e.target.value)}
       />
 
@@ -44,17 +44,22 @@ function ProductForm({ handleAddProduct }) {
       <input
         type="text"
         className="input"
-        value={productPrice}
+        value={price}
         onChange={(e) => setProductPrice(e.target.value)}
       />
 
       <label>Enter Category</label>
-      <input
-        type="text"
-        className="input"
-        value={category}
+      <select
+        className="select"
+        value={categoryTitle}
         onChange={(e) => setCategory(e.target.value)}
-      />
+      >
+        {categoriesList.map((category) => (
+          <option key={category.id} value={category.title}>
+            {category.title}
+          </option>
+        ))}
+      </select>
 
       <label>Enter Quantity</label>
       <input
@@ -96,9 +101,9 @@ function ProductList({ formDataList, deleteForm, editForm }) {
           {formDataList.map((formData, index) => (
             <tr key={formData.Id}>
               <td>{index + 1}</td>
-              <td>{formData.productName}</td>
-              <td>{formData.productPrice}</td>
-              <td>{formData.category}</td>
+              <td>{formData.name}</td>
+              <td>{formData.price}</td>
+              <td>{formData.categoryTitle}</td>
               <td>{formData.quantity}</td>
               <td>{formData.isActive}</td>
               <td>
@@ -119,10 +124,11 @@ function ProductList({ formDataList, deleteForm, editForm }) {
 
 function App() {
   const [formDataList, setFormDataList] = useState([]);
-  const [editFormData, setEditFormData] = useState(null);
+  const [categoriesList, setCategoriesList] = useState([]);
 
   useEffect(() => {
     fetchProductData();
+    fetchCategoriesData();
   }, []);
 
   const fetchProductData = async () => {
@@ -157,7 +163,16 @@ function App() {
     try {
       const response = await axios.get(`https://localhost:44378/api/products/${Id}`);
       const formDataToEdit = response.data;
-      setEditFormData(formDataToEdit);
+      // Do something with the edit form data
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchCategoriesData = async () => {
+    try {
+      const response = await axios.get('https://localhost:44378/api/categories');
+      setCategoriesList(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -166,7 +181,7 @@ function App() {
   return (
     <div className="main">
       <h2>Enter Product Details</h2>
-      <ProductForm handleAddProduct={addForm} />
+      <ProductForm handleAddProduct={addForm} categoriesList={categoriesList} />
       <h3>Product List</h3>
       <ProductList formDataList={formDataList} deleteForm={deleteForm} editForm={editForm} />
     </div>
