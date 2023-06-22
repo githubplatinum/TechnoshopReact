@@ -70,13 +70,17 @@ function ProductForm({ handleAddProduct, categoriesList }) {
       />
 
       <label>IsActive</label>
-      <input
+      <select
         type="text"
         className="input"
         value={isActive}
         onChange={(e) => setIsActive(e.target.value)}
-      />
-
+      >
+        <option value="">Select an option</option>
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      
+        </select>
       <button type="submit">Submit</button>
     </form>
   );
@@ -94,7 +98,10 @@ function ProductList({ formDataList, deleteForm, editForm }) {
             <th>Category</th>
             <th>Quantity</th>
             <th>IsActive</th>
+            <th>Date created</th>
+            <th>Date updated</th>
             <th>Action</th>
+     
           </tr>
         </thead>
         <tbody>
@@ -105,7 +112,10 @@ function ProductList({ formDataList, deleteForm, editForm }) {
               <td>{formData.price}</td>
               <td>{formData.categoryTitle}</td>
               <td>{formData.quantity}</td>
-              <td>{formData.isActive}</td>
+              <td>{formData.isActive ? "Yes" : "No"}   
+              </td>
+              <td>{new Date(formData.updatedAt).toLocaleString()}</td>
+              <td>{new Date(formData.createdAt).toLocaleString()}</td>
               <td>
                 <button className="btn-action" onClick={() => deleteForm(formData.Id)}>
                   Delete
