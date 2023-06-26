@@ -100,6 +100,8 @@ function ProductList({ formDataList, deleteForm, editForm }) {
             <th>IsActive</th>
             <th>Date created</th>
             <th>Date updated</th>
+            <th>Created by</th>
+            <th>Updated by</th>
             <th>Action</th>
      
           </tr>
@@ -116,6 +118,8 @@ function ProductList({ formDataList, deleteForm, editForm }) {
               </td>
               <td>{new Date(formData.updatedAt).toLocaleString()}</td>
               <td>{new Date(formData.createdAt).toLocaleString()}</td>
+              <td>{formData.person.firstName}</td>
+              <td>{formData.person.lastName}</td>
               <td>
                 <button className="btn-action" onClick={() => deleteForm(formData.Id)}>
                   Delete
